@@ -12,6 +12,6 @@ export default defineConfig({
         }),
     ],
     optimizeDeps: {
-        include: ['@fortawesome/fontawesome-free'],
+        include: ['@fortawesome/fontawesome-free', 'jquery'],
     },
 });

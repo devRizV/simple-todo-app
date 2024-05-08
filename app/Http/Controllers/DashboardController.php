@@ -17,4 +17,9 @@ class DashboardController extends Controller
         return view('todo.dashboard', compact('tasks'));
 
     }
+    public function test()
+    {
+        return view('todo.test');
+
+    }
 }

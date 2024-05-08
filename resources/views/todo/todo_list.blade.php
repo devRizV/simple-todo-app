@@ -1,110 +1,211 @@
 <x-app-layout>
-
    
-    <x-slot name='header'>
-
-        <x-secondary-button id="show_add_task">
-            {{ __('Add Task')}} <span id="up-down" class="text-gray-500 ml-4 fas fa-angle-down"></span>
-        </x-secondary-button>
-        
-        @include('todo.add_task')
-
-    </x-slot>
-
-        @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
+    <x-slot name='header'>        
+        <div x-data="{isOpen: false}">
+            <div>
+                <button type="button" @click="isOpen=true" class="bg-blue-900 text-white w-fit rounded-xl p-2 hover:transition hover:ease-in hover:duration-200 hover:transform hover:scale-105 hover:bg-blue-800">
+                    ADD TASK <span class="fa-solid fa-plus-circle fa-2xl ml-1"></span>
+                </button>
             </div>
-        @endif
+            @include('todo.add_task')
+        </div>
 
-    <div class="m-4">
-        <table class="w-full border border-gray-400 bg-white shadow-lg shadow-blue-500 rounded-2xl">
-            <thead class="bg-gray-200">
-                <tr>
-                    <th class="px-4 py-2 text-left">Task#</th>
-                    <th class="px-4 py-2 text-left">Task Name</th>
-                    <th class="px-4 py-2 text-left">Task Details</th>
-                    <th class="px-4 py-2 text-left">Task Status</th>
-                    <th class="px-4 py-2 text-left">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($tasks as $task)
-                <tr class="border-b border-gray-400">
-                    <td class="px-4 py-2">{{ $loop->iteration }}</td>
-                    <td class="px-4 py-2">{{ $task->title }}</td>
-                    <td class="px-4 py-2">{{ $task->task_desc }}</td>
-                    <td class="px-4 py-2">
-                        <form action="{{ route('update_task', $task->id)}}" method="post">
-                            @csrf
-                            <button type="" onclick="return confirm('{{$task->is_completed != 'false' ? 'The task is done' : 'Do you want to update task?'}}')">
-                               
-                                <span class="inline-block px-4 py-1 rounded-full text-white
-                                    {{$task->is_completed != 'false' ? 'bg-green-500' : 'bg-red-500'}} ">
-
-                                    {{$task->is_completed != 'false' ? 'Done' : 'Pending'}}
-                                </span>
-                            </button>
-                        </form>
-                    </td>
-                    <td>
-                        <div class="flex items-center justify-center">
-
-                            @if ($task->is_completed === 'false')
+    </x-slot> 
+        
+        <div class="flex items-center  justify-center bg-cyan-800">
+            <div class="block m-4 ">
+                <table class="bg-blue-300 block rounded-xl">
+                    <thead>
+                        <tr>
+                            <th class="py-4 px-4 mx-4 ">#</th>
+                            <th class="py-4 px-4 mx-4 ">Title</th>
+                            <th class="py-2 px-2 mx-4 ">Description</th>
+                            <th class="py-2 px-2 mx-4 ">Status</th>
+                            <th class="py-2 px-2 mx-4 ">Action</th>
                             
-                            <a href="{{route('edit_task', $task->id)}}" class="mx-2"> <span class="fas fa-edit text-blue-500"></span></a>
-                        
+                        </tr>
+                    </thead>
+                    <tbody> 
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    <script type="module">
+
+        $(document).ready(function(){
+            fetchTasks();
+
+            function fetchTasks()
+            {
+                $.ajax({
+                    type: 'GET',
+                    url: "/show_task",
+                    dataType: 'json',
+                    success: function(response) {
+                        $('tbody').html('');
+                        $.each(response.tasks, function(key, task){
                             
-                            <form action="{{ route('delete_task', $task->id) }}" method="post">
-                                @csrf
-                                <button onclick="return confirm('Do you want to delete this task')" >
-                                    <span class="fas fa-trash text-red-600"></span>
-                                </button>
-                            </form>
-                            @else
-                                <span class="fas fa-check text-green-500"></span>
-                            @endif
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+                            $('tbody').append(taskData(task));
+                        });  
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching tasks:', error);
+                    },
+                });
+            }
 
-
-    <script type="text/javascript"> 
-       
-        document.addEventListener("DOMContentLoaded", function() {
-
-            const showAddTask = document.getElementById('show_add_task');
-            const addTaskDiv = document.getElementById('add_task_div');
-            const upDown = document.getElementById('up-down');
-
-            addTaskDiv.classList.add('opacity-0', 'scale-y-0');
-
-            showAddTask.addEventListener('click', function() {
-                if (addTaskDiv.classList.contains('hidden')) {
-                    upDown.classList.remove('fa-angle-down');
-                    upDown.classList.add('fa-angle-up');
-
-                    addTaskDiv.classList.remove('hidden');
-                    setTimeout(() => {
-                        addTaskDiv.classList.add('transition', 'duration-500', 'ease-in', 'transform', 'opacity-100', 'scale-y-100');
-                    }, 50)
-                } else {
-                    upDown.classList.remove('fa-angle-up');
-                    upDown.classList.add('fa-angle-down');
-                    addTaskDiv.classList.remove('transition', 'duration-500', 'ease-in', 'transform', 'opacity-100', 'scale-y-100');
-                    addTaskDiv.classList.add('transition', 'duration-500', 'ease-out', 'transform', 'opacity-0', 'scale-y-0');
-                    setTimeout(() => {
-                        addTaskDiv.classList.add('hidden');
-                    }, 500);
-                }
+            $(document).on('click', '.createTaskButton',function(e)
+            {
+                e.preventDefault();
+                
+                const form = $(this).closest('form');
+                const formData = form.serialize();
+                $.ajax({
+                    type: "POST",
+                    url: "/store_task",
+                    data: formData,
+                    datatype: 'json',
+                    success: function(response){
+                        $("#add_task_form")[0].reset();
+                        fetchTasks();
+                    },
+                    error: function(xhr, status, error){
+                        console.error(error);
+                    },
+                });
             });
-        });
 
+            $(document).on('click', '.confirmUpdateButton', function(e){
+                    e.preventDefault();
+                    const form = $(this).closest('form');
+                    const formData = form.serialize();
+                    $.ajax({
+                        type:"POST",
+                        url:"/update_task",
+                        data: formData,
+                        datatype: 'json',
+                        success: function(response){
+                            fetchTasks();
+                        },
+                        error:function(xhr, status, error){
+                            console.log('Error:', error);
+                        },
+                    });
+                });
+                
+                
+                $(document).on('click', '.confirmDeleteButton', function(e){
+                    e.preventDefault();
+                    const form = $(this).closest('form');
+                    const formData = form.serialize();
+                    console.log(formData);
+                    $.ajax({
+                        type:"POST",
+                        url:"/delete_task",
+                        data: formData,
+                        datatype: 'json',
+                        success: function(response){
+                            fetchTasks();
+                            console.log(response.message);
+                        },
+                        error:function(xhr, status, error){
+                            console.log('Error:', error);
+                        },
+                    });
+                });
+                
+                $(document).on('click', '.saveEditButton', function(e){
+                    e.preventDefault();
+                    console.log('here');
+                    const form = $(this).closest('form');
+                    const formData = form.serialize();
+                    $.ajax({
+                        type:"POST",
+                        url:"/task_update",
+                        data: formData,
+                        datatype: 'json',
+                        success: function(response){
+                            fetchTasks();
+                            console.log(response.message);
+                        },
+                        error:function(xhr, status, error){
+                            console.log('Error:', error);
+                        },
+                    });
+                });
+
+            function taskData(data){
+                var taskEdit = `
+                                <div x-data='{isOpen: false, confirmButtonClass: ""}' name="taskEdit">
+                                    <button type="button" @click='isOpen=true; confirmButtonClass="confirmDeleteButton"'>
+                                        <span class="fas fa-edit text-white bg-blue-500 rounded-full px-3 py-3 mx-2"></span>
+                                    </button>
+
+                                    @include('todo.edit_task')
+                                </div>
+                                `;
+
+                var taskUpdate =`
+                                <div x-data="{isOpen: false, confirmButtonClass: ''}">
+                                    <button id="updateTaskButton${data.id}" name="updateTaskButton" class="update text-white" type="button" @click="isOpen=true; confirmButtonClass='confirmUpdateButton'"> 
+                                        <span class="fas fa-check text-gray-500 hover:transition hover:ease hover: hover:text-white cursor-pointer bg-gray-300 hover:bg-green-300 rounded-full px-3 py-3 mr-2"></span>
+                                    </button>
+                    
+                                    @include('todo.confirmAction')
+                                </div>
+                                `;
+
+                var taskDelete =`
+                                <div x-data="{isOpen:false, confirmButtonClass: ''}">
+                                    <button id="deleteTaskButton${data.id}" name="deleteTaskButton" class="delete text-white" type="button" @click="isOpen=true; confirmButtonClass='confirmDeleteButton'"> 
+                                        <span class="fa fa-trash text-white bg-red-500 rounded-full px-3 py-3 ml-2"></span> 
+                                    </button>
+                                    @include('todo.confirmAction')
+                                </div>
+                                `;
+
+                var updateForm = `
+                                    <form class="updateTaskForm" data-task-id = "${data.id}">
+                                        @csrf
+                                        <input type="hidden" name="id" value="${data.id}">
+                                        <div class="flex m-0 p-0">
+                                            
+                                            ${taskUpdate}
+                                                    
+                                            ${taskEdit}
+
+                                            ${taskDelete}
+
+                                            
+                                        </div>
+                                    </form>
+                                `;
+
+                var TaskComplete = `
+                                    <div class="flex content-center justify-center m-0 p-0">
+                                        <span class="text-white rounded-full bg-green-500  px-3 py-3 fa-solid fa-check"></span>
+                                    </div>
+                                `;
+
+                var row = `   
+                            <tr class="py-0 px-2 my-4 mx-2 ${(data.is_completed != "false" ? 'bg-white' : "Not bg-red-400")} rounded-xl">
+                                <td> ${data.id} </td>
+                                <td class="py-2 px-2 my-2 mx-4 ">${data.title}</td>
+                                <td class="py-2 px-2 my-2 mx-4 ">${data.task_desc}</td>
+                                <td class="py-2 px-2 my-2 mx-4 ">${(data.is_completed != "false" ? 'Completed' : "Not Completed")}</td>
+                                <td class="py-2 px-2 my-2 mx-4 ">
+                                    ${(data.is_completed != "false" ? TaskComplete : updateForm)}
+                                </td>
+                            </tr>
+                        `;
+
+                        
+                return row;
+            }
+        }); 
     </script>
+
 
 
 </x-app-layout>

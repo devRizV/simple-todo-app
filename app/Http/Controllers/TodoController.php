@@ -12,6 +12,9 @@ use App\Models\Todo;
 
 class TodoController extends Controller
 {
+    public function index() {
+        return view("todo/todo_list");
+    }
     public function store_task(Request $request) {
         
         $validatedData = $request->validate([
@@ -19,57 +22,67 @@ class TodoController extends Controller
             'task_desc' => 'nullable|string|max:500',
         ]);
 
-        $todo = Todo::create([
+        $task = Todo::create([
             'title' => $validatedData['title'],
             'task_desc' => $validatedData['task_desc'],
 
             'user_id' => Auth::user()->id,
         ]);
 
-        return redirect()->back()->with('success', 'Task created successfully');
+        return response()->json([
+                "task"=>$task,
+            ]);
     }
 
-    public function show_task() {
+    public function show_task(Request $request) {
         $tasks = Todo::where('user_id', '=', Auth::user()->id)->get();
-        return view('todo.todo_list', compact('tasks'));
+
+        return response()->json([
+                'tasks'=>$tasks,
+            ]);
     }
 
-    public function update_task(Request $request, $id)
+    public function update_task(Request $request)
     {
-        $task = Todo::findOrFail($id); // Use findOrFail to throw a 404 error if the task is not found
+        $id = $request->id;
+        $task = Todo::findOrFail($id); 
+        $task->is_completed = 'true';
+        $task->save();
 
-        if ($task->is_completed === 'false') {
-            $task->is_completed = 'true';
-            $task->save();
-            return redirect()->route('todo_list')->with('success', 'Task updated successfully');
-        } else {
-            return redirect()->route('todo_list')->with('error', 'Task is already completed');
-        }
+        return response()->json([
+                'task'=>$task,
+            ]);
     }
 
-    public function edit_task(Request $request, $id) {
+
+    public function edit_task(Request $request, $id) 
+    {
         $task = Todo::findOrFail($id);
         return view('todo.edit_task', compact('task'));
     }
 
-    public function task_update(Request $request, $id){
+    public function task_update(Request $request)
+    {
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'task_desc' => 'nullable|string|max:500',
         ]);
 
-            
+        $id = $request->id;
 
         $task = Todo::findOrFail($id)->update([
-                'title'=>$validatedData['title'],
+            'title'=>$validatedData['title'],
             'task_desc'=>$validatedData['task_desc'],
         ]);
 
-        return redirect()->route('todo_list')->with('success', 'Task updated successfully');
+        return response()->json([
+            'task'=>$task,
+        ]);
     }
     
-    public function delete_task($id){
-        
+    public function delete_task(Request $request)
+    {  
+        $id = $request->id;
         try {
 
             $task = Todo::where('id', $id)
@@ -77,14 +90,17 @@ class TodoController extends Controller
                         ->firstOrFail();
 
         } catch (ModelNotFoundException $e) {
-
-            return redirect()->route('todo_list')->with('success', "Task can't be deleted");
-            
+            return response()->json([
+                'message'=> 'The task not found!!' ,
+            ]);
         }
 
         $task->delete();
 
-        return redirect()->route('todo_list')->with('success', 'Task deleted successfully');
+        return response()->json([
+            'task'=>$task,
+            'message'=>'Task deleted successfully',
+        ]);
     }
 
 }

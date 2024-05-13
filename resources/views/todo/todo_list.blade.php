@@ -3,26 +3,28 @@
     <x-slot name='header'>        
         <div x-data="{isOpen: false}">
             <div>
-                <button type="button" @click="isOpen=true" class="bg-blue-900 text-white w-fit rounded-xl p-2 hover:transition hover:ease-in hover:duration-200 hover:transform hover:scale-105 hover:bg-blue-800">
-                    ADD TASK <span class="fa-solid fa-plus-circle fa-2xl ml-1"></span>
+                <button type="button" @click="isOpen=true" class="bg-blue-900 text-white w-fit rounded-xl p-2 transition-all ease-in-out duration-300 hover:pl-6 hover:bg-blue-800">
+                    Add task <span class="fa-solid fa-plus-circle fa-lg ml-1"></span>
                 </button>
             </div>
             @include('todo.add_task')
         </div>
-
     </x-slot> 
+    
         
-        <div class="flex items-center  justify-center bg-cyan-800">
+        <div class="flex items-center  justify-center bg-cyan-900">
             <div class="block m-4 ">
-                <table class="bg-blue-300 block rounded-xl">
-                    <thead>
+                <table class="block shadow-lg shadow-black">
+                    <thead class="bg-gray-100 rounded-xl">
+                        <tr class="user">
+                            <th colspan="5"></th>
+                        </tr>
                         <tr>
-                            <th class="py-4 px-4 mx-4 ">#</th>
-                            <th class="py-4 px-4 mx-4 ">Title</th>
-                            <th class="py-2 px-2 mx-4 ">Description</th>
-                            <th class="py-2 px-2 mx-4 ">Status</th>
-                            <th class="py-2 px-2 mx-4 ">Action</th>
-                            
+                            <th class="py-4 px-4 mx-4 border-b-8 border-r-2 border-gray-400">#</th>
+                            <th class="py-4 px-4 mx-4 border-b-8 border-r-2 border-gray-400">Title</th>
+                            <th class="py-2 px-2 mx-4 border-b-8 border-r-2 border-gray-400">Description</th>
+                            <th class="py-2 px-2 mx-4 border-b-8 border-r-2 border-gray-400">Status</th>
+                            <th class="py-2 px-2 mx-4 border-b-8 border-r-2 border-gray-400">Action</th> 
                         </tr>
                     </thead>
                     <tbody> 
@@ -43,6 +45,7 @@
                     url: "/show_task",
                     dataType: 'json',
                     success: function(response) {
+                        
                         $('tbody').html('');
                         $.each(response.tasks, function(key, task){
                             
@@ -135,11 +138,12 @@
                     });
                 });
 
+            
             function taskData(data){
                 var taskEdit = `
-                                <div x-data='{isOpen: false, confirmButtonClass: ""}' name="taskEdit">
-                                    <button type="button" @click='isOpen=true; confirmButtonClass="confirmDeleteButton"'>
-                                        <span class="fas fa-edit text-white bg-blue-500 rounded-full px-3 py-3 mx-2"></span>
+                                <div x-data='{isOpen: false}' name="taskEdit">
+                                    <button type="button" @click='isOpen=true'>
+                                        <span class="fas fa-edit text-white bg-blue-950 rounded-full px-3 py-3 mx-2 transition-all ease-in-out duration-300 hover:text-blue-900 hover:bg-blue-500"></span>
                                     </button>
 
                                     @include('todo.edit_task')
@@ -149,7 +153,7 @@
                 var taskUpdate =`
                                 <div x-data="{isOpen: false, confirmButtonClass: ''}">
                                     <button id="updateTaskButton${data.id}" name="updateTaskButton" class="update text-white" type="button" @click="isOpen=true; confirmButtonClass='confirmUpdateButton'"> 
-                                        <span class="fas fa-check text-gray-500 hover:transition hover:ease hover: hover:text-white cursor-pointer bg-gray-300 hover:bg-green-300 rounded-full px-3 py-3 mr-2"></span>
+                                        <span class="fas fa-check text-gray-700 transition-all ease-in-out duration-300 hover:text-white cursor-pointer bg-gray-500 hover:bg-green-500 rounded-full px-3 py-3 mr-2"></span>
                                     </button>
                     
                                     @include('todo.confirmAction')
@@ -159,7 +163,7 @@
                 var taskDelete =`
                                 <div x-data="{isOpen:false, confirmButtonClass: ''}">
                                     <button id="deleteTaskButton${data.id}" name="deleteTaskButton" class="delete text-white" type="button" @click="isOpen=true; confirmButtonClass='confirmDeleteButton'"> 
-                                        <span class="fa fa-trash text-white bg-red-500 rounded-full px-3 py-3 ml-2"></span> 
+                                        <span class="fa fa-trash text-white bg-red-500 rounded-full px-3 py-3 ml-2 transition-all ease-in-out duration-300 hover:text-red-900 hover:bg-white"></span> 
                                     </button>
                                     @include('todo.confirmAction')
                                 </div>
@@ -176,7 +180,6 @@
                                             ${taskEdit}
 
                                             ${taskDelete}
-
                                             
                                         </div>
                                     </form>
@@ -184,13 +187,13 @@
 
                 var TaskComplete = `
                                     <div class="flex content-center justify-center m-0 p-0">
-                                        <span class="text-white rounded-full bg-green-500  px-3 py-3 fa-solid fa-check"></span>
+                                        <span class="text-white rounded-full bg-green-600 px-3 py-3 fa-solid fa-check transition-all ease-in-out hover:bg-green-500"></span>
                                     </div>
                                 `;
 
                 var row = `   
-                            <tr class="py-0 px-2 my-4 mx-2 ${(data.is_completed != "false" ? 'bg-white' : "Not bg-red-400")} rounded-xl">
-                                <td> ${data.id} </td>
+                            <tr class="py-2 px-2 my-4 mx-2 ${(data.is_completed != "false" ? 'bg-gray-800 text-white' : "bg-red-700")} rounded-xl">
+                                <td class="py-2 px-2 my-2 mx-4 "> ${data.id} </td>
                                 <td class="py-2 px-2 my-2 mx-4 ">${data.title}</td>
                                 <td class="py-2 px-2 my-2 mx-4 ">${data.task_desc}</td>
                                 <td class="py-2 px-2 my-2 mx-4 ">${(data.is_completed != "false" ? 'Completed' : "Not Completed")}</td>
@@ -199,7 +202,6 @@
                                 </td>
                             </tr>
                         `;
-
                         
                 return row;
             }

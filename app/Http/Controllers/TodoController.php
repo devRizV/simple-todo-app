@@ -31,14 +31,19 @@ class TodoController extends Controller
 
         return response()->json([
                 "task"=>$task,
+                'user' => Auth::user(),
             ]);
     }
 
     public function show_task(Request $request) {
-        $tasks = Todo::where('user_id', '=', Auth::user()->id)->get();
+        if(!Auth::user()->is_admin){
+            $tasks = Todo::where('user_id', '=', Auth::user()->id)
+                    ->get();
+        }
 
         return response()->json([
                 'tasks'=>$tasks,
+                'user'=>Auth::user(),
             ]);
     }
 
@@ -51,6 +56,7 @@ class TodoController extends Controller
 
         return response()->json([
                 'task'=>$task,
+                'user' => Auth::user(),
             ]);
     }
 
@@ -77,6 +83,7 @@ class TodoController extends Controller
 
         return response()->json([
             'task'=>$task,
+            'user' => Auth::user(),
         ]);
     }
     
@@ -99,6 +106,7 @@ class TodoController extends Controller
 
         return response()->json([
             'task'=>$task,
+            'user' => Auth::user(),
             'message'=>'Task deleted successfully',
         ]);
     }
